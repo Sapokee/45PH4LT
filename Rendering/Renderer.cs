@@ -41,7 +41,10 @@ public class Renderer
 	{
 		foreach (var wall in track.Walls)
 		{
-			Raylib.DrawLineV(wall.Start, wall.End, Color.Black);
+			Vector2 startPx = wall.Start * GameConfig.PixelsPerMeter;
+			Vector2 endPx = wall.End * GameConfig.PixelsPerMeter;
+
+			Raylib.DrawLineV(startPx, endPx, Color.Black);
 		}
 	}
 
@@ -52,18 +55,22 @@ public class Renderer
 
 	public void DrawCar(Car car)
 	{
-		// Draw car body
-		Raylib.DrawCircleV(car.Position, 10.0f, Color.Red);
+		Vector2 screenPosition = car.Position * GameConfig.PixelsPerMeter;
 
-		// Draw heading direction indicator
-		Vector2 headingVector = new Vector2(
-			(float)Math.Cos(car.Heading) * 20.0f,
-			(float)Math.Sin(car.Heading) * 20.0f
+		Raylib.DrawRectanglePro(
+			new Rectangle(screenPosition.X, screenPosition.Y, 40.0f, 20.0f),
+			new Vector2(20.0f, 10.0f),
+			car.Orientation * (180.0f / (float)Math.PI),
+			Color.Red
 		);
-		Raylib.DrawLineV(car.Position, car.Position + headingVector, Color.Blue);
+
+		Vector2 orientationVector = new Vector2(
+			(float)Math.Cos(car.Orientation) * 20.0f,
+			(float)Math.Sin(car.Orientation) * 20.0f
+		);
+		Raylib.DrawLineV(screenPosition, screenPosition+ orientationVector, Color.Blue);
 	}
 
-	// Input wrappers to keep input handling clean
-	public Vector2 GetMousePosition() => Raylib.GetMousePosition();
-	public bool IsMouseButtonPressed(MouseButton button) => Raylib.IsMouseButtonPressed(button);
+	public static Vector2 GetMousePosition() => Raylib.GetMousePosition();
+	public static bool IsMouseButtonPressed(MouseButton button) => Raylib.IsMouseButtonPressed(button);
 }
