@@ -58,10 +58,10 @@ public class Renderer
 		Vector2 screenPosition = car.Position * GameConfig.PixelsPerMeter;
 
 		Raylib.DrawRectanglePro(
-			new Rectangle(screenPosition.X, screenPosition.Y, 40.0f, 20.0f),
+			new Rectangle(screenPosition.X, screenPosition.Y, 2.5f * GameConfig.PixelsPerMeter, 1f * GameConfig.PixelsPerMeter),
 			new Vector2(20.0f, 10.0f),
 			car.Orientation * (180.0f / (float)Math.PI),
-			Color.Red
+			(car.IsDrifting ? Color.Red : Color.Lime)
 		);
 
 		Vector2 orientationVector = new Vector2(

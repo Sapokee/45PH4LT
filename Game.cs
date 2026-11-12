@@ -19,7 +19,9 @@ public class Game
 		{
 			Position = new Vector2(5, 5),
 			Orientation = 0.0f,
-			Velocity = new Vector2(0, 0)
+			ForwardVelocity = 0.0f,
+			LateralVelocity = 0.0f,
+			AngularVelocity = 0.0f,
 		};
 
 		const float dt = 0.01666f; // 60Hz physics timestep
@@ -69,7 +71,9 @@ public class Game
 		{
 			_car.Position = new Vector2(5, 5);
 			_car.Orientation = 0.0f;
-			_car.Velocity = new Vector2(0, 0);
+			_car.ForwardVelocity = 0.0f;
+			_car.LateralVelocity = 0.0f;
+			_car.AngularVelocity = 0.0f;
 		}
 
 		// track editor
