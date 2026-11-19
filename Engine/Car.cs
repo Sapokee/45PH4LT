@@ -4,6 +4,8 @@ public class Car
 {
 	// units: m, rad, m/s, m/s^2, rad/s, kg, N
 
+	public const float GravitationalPull = 9.81f;
+
 	// state variables
 	public Vector2 Position { get; set; }
 	public float Orientation { get; set; }
@@ -12,6 +14,7 @@ public class Car
 	public float AngularVelocity { get; set; }
 	public float CurrentSteeringAngle { get; set; }
 	public bool IsDrifting { get; set; } = false;
+	public string DebugData { get; set; } = "";
 
 
 	// vehicle config
@@ -20,7 +23,7 @@ public class Car
 	private const float DistanceCOMToRearAxle = 1.25f;
 	private const float Width = 1f;
 	private const float Length = 2.5f;
-	private const float MaxSteeringAngle = 0.6f;    // ~34 degrees
+	private const float MaxSteeringAngle = 1.5f;    // ~34 degrees
 	private const float SteeringRate = 4.0f;
 	private const float MaxAcceleration = 6.0f;
 	private const float MaxDeceleration = 12.0f;
@@ -30,8 +33,8 @@ public class Car
 	private const float MomentOfInertia = 1500f;
 
 	// tire and grip
-	private const float BaseMaxFrontGrip = 6000f;
-	private const float BaseMaxRearGrip = 5000f;
+	private const float BaseMaxFrontGrip = 600f;
+	private const float BaseMaxRearGrip = 500f;
 
 	public void UpdatePhysics(float throttleInput, float brakeInput, float steeringInput, float dt)
 	{
@@ -81,8 +84,8 @@ public class Car
 
 		// WEIGHT TRANSFER
 		
-		float staticFrontLoad = Mass * 9.81f * (DistanceCOMToRearAxle / wheelBase);
-		float staticRearLoad = Mass * 9.81f * (DistanceCOMToFrontAxle / wheelBase);
+		float staticFrontLoad = Mass * GravitationalPull * (DistanceCOMToRearAxle / wheelBase);
+		float staticRearLoad = Mass * GravitationalPull * (DistanceCOMToFrontAxle / wheelBase);
 
 		float weightTransfer = (longitudinalAcceleration * Mass * CenterOfMassHeight) / wheelBase;
 
@@ -92,10 +95,29 @@ public class Car
 		float maxFrontGrip = BaseMaxFrontGrip * (frontLoad / staticFrontLoad);
 		float maxRearGrip = BaseMaxRearGrip * (rearLoad / staticRearLoad);
 
-		// tbc
+		// AXLE VELOCITIES
 
+		float frontSlipVelocity = LateralVelocity + (AngularVelocity * DistanceCOMToFrontAxle) - (ForwardVelocity * CurrentSteeringAngle);
+		float rearSlipVelocity = LateralVelocity - (AngularVelocity * DistanceCOMToRearAxle);
 
+		float frontMassShare = Mass * (DistanceCOMToRearAxle / wheelBase);
+		float rearMassShare = Mass * (DistanceCOMToFrontAxle / wheelBase);
 
+		float frontForceDemand = -frontSlipVelocity * frontMassShare / dt;
+		float rearForceDemand = -rearSlipVelocity * rearMassShare / dt;
+
+		float frontLateralForce = Math.Clamp(frontForceDemand, -maxFrontGrip, maxFrontGrip);
+		float rearLateralForce = Math.Clamp(rearForceDemand, -maxRearGrip, maxRearGrip);
+
+		float torque = (frontLateralForce * DistanceCOMToFrontAxle) - (rearLateralForce * DistanceCOMToRearAxle);
+		float angularAcceleration = torque / MomentOfInertia;
+		AngularVelocity += angularAcceleration * dt;
+
+		float totalLateralForce = frontLateralForce + rearLateralForce;
+		float lateralAcceleration = totalLateralForce / Mass;
+		LateralVelocity += lateralAcceleration * dt;
+
+		LateralVelocity *= 0.98f;
 
 		Vector2 forwardDirection = new Vector2(MathF.Cos(Orientation), MathF.Sin(Orientation));
 		Vector2 rightDirection = new Vector2(-MathF.Sin(Orientation), MathF.Cos(Orientation));
@@ -106,15 +128,11 @@ public class Car
 
 		Position += totalVelocity * dt;
 
-	}
-
-	private void UpdatePosition(float throttleInput, float brakeInput, float dt)
-	{
-		
-	}
-
-	private void UpdateOrientation(float steeringInput, float dt)
-	{
-		
+		DebugData = @"
+			Position: " + Position.ToString("n1") + @"
+			Orientation: " + Orientation.ToString("n1") + @"
+			LateralVelocity: " + LateralVelocity.ToString("n1") + @"
+			ForwardVelocity: " + ForwardVelocity.ToString("n1") + @"
+			AngularVelocity: " + AngularVelocity.ToString("n1");
 	}
 }

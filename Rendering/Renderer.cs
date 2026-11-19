@@ -68,7 +68,11 @@ public class Renderer
 			(float)Math.Cos(car.Orientation) * 20.0f,
 			(float)Math.Sin(car.Orientation) * 20.0f
 		);
+
+		// debug
+
 		Raylib.DrawLineV(screenPosition, screenPosition+ orientationVector, Color.Blue);
+		Raylib.DrawText(car.DebugData, 20, 80, 20, Color.DarkGray);
 	}
 
 	public static Vector2 GetMousePosition() => Raylib.GetMousePosition();
